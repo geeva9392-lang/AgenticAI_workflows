@@ -1,0 +1,193 @@
+{
+  "name": "Employee Onboarding Concierge - Chatbot + Grok + Memory + Gmail",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {}
+      },
+      "id": "2502e3d9-50bf-469d-b9c5-2cbf13d92117",
+      "name": "Chatbot",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -496,
+        192
+      ],
+      "webhookId": "d888c442-9641-4d7a-932b-52772ea4f50c"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "sender-email",
+              "name": "senderEmail",
+              "value": "YOUR_EMAIL@example.com",
+              "type": "string"
+            },
+            {
+              "id": "project-context",
+              "name": "projectContext",
+              "value": "You are the Employee Onboarding Concierge. Help new hires with onboarding steps, HR/IT questions, paperwork, access, equipment, and next steps. The project aims to reduce onboarding time and repetitive HR/IT requests and provide a consistent onboarding experience. Be concise, friendly, and do not invent company policies. If a policy-specific answer is unavailable, say that the user should check HR or the official onboarding documentation.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "59d32802-9816-451d-8c98-1fdd4eb0f35a",
+      "name": "Set Email + Context",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -288,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Chatbot').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "={{ $('Set Email + Context').item.json.projectContext }}"
+        }
+      },
+      "id": "666cec8f-edf6-4b52-baf9-99c4f31dfa15",
+      "name": "Grok Chatbot Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        32,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Set Email + Context').item.json.senderEmail }}",
+        "subject": "Employee Onboarding Concierge - Chat Response",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "id": "0a1f3952-7320-4d89-a895-cc7e6d4decbe",
+      "name": "Send Response via Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        304,
+        192
+      ],
+      "webhookId": "e78f2576-3772-401b-a27b-657361c13e4e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Gfo4QfIeBAQmdKv2",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3.8-27b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        400
+      ],
+      "id": "b27c63e6-7349-404a-b234-52d13de56e1a",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "xo9JvZriOqLeKU8a",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        48,
+        400
+      ],
+      "id": "14160159-d6d0-4ff8-977e-17db4a20822b",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chatbot": {
+      "main": [
+        [
+          {
+            "node": "Set Email + Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Email + Context": {
+      "main": [
+        [
+          {
+            "node": "Grok Chatbot Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grok Chatbot Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Response via Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Grok Chatbot Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Grok Chatbot Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e4a16541-a8ee-4c90-895e-b1c68ac57606",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fab0595fff0ae47a5972a98da7b07fffb75d5d74a29b21acd957053e910d3103"
+  },
+  "nodeGroups": [],
+  "id": "LgKiNbSGEL1pL7fM",
+  "tags": []
+}
